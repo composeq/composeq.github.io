@@ -1,1 +1,539 @@
-hello world
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CompoSeq — Composable foundations for genomic data</title>
+  <meta name="description" content="CompoSeq is a collaborative initiative building composable, Arrow-native foundations for genomic data — declarative, streaming, and composable, from cloud storage to GPU." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="CompoSeq" />
+  <meta property="og:description" content="Composable foundations for genomic data." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://composeq.dev" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --paper: #FCFBF8;
+      --ink: #15191F;
+      --muted: #5C6672;
+      --line: #E6E3DB;
+      --card: #FFFFFF;
+      --accent: #0E9E8E;
+      --accent-soft: rgba(14, 158, 142, 0.12);
+      --track: #E8A33D;
+      --shadow: 0 1px 2px rgba(21, 25, 31, 0.04), 0 8px 24px rgba(21, 25, 31, 0.06);
+
+      --display: "Space Grotesk", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+      --maxw: 1120px;
+      --gutter: clamp(20px, 5vw, 56px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #0E1218;
+        --ink: #EAECEF;
+        --muted: #9AA4B0;
+        --line: rgba(255, 255, 255, 0.10);
+        --card: #161C24;
+        --accent: #2BC2B0;
+        --accent-soft: rgba(43, 194, 176, 0.14);
+        --track: #F0B357;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--body);
+      font-size: 17px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin-inline: auto;
+      padding-inline: var(--gutter);
+    }
+
+    /* ---------- Eyebrow (position tick) ---------- */
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 7px solid var(--accent);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      backdrop-filter: saturate(1.1) blur(8px);
+      z-index: 10;
+    }
+    .topbar .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .wordmark {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 2px;
+    }
+    .wordmark b { color: var(--accent); font-weight: 500; }
+    .topbar nav a {
+      font-family: var(--mono);
+      font-size: 13.5px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .topbar nav a:hover { color: var(--ink); }
+
+    /* ---------- Hero ---------- */
+    .hero { padding-top: clamp(48px, 9vw, 104px); }
+    .hero-brand { margin-bottom: 24px; }
+    .hero-word {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: 0.01em;
+      display: block;
+    }
+    .hero-word b { color: var(--accent); font-weight: 500; }
+    .hero-pron {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 5px;
+      display: block;
+    }
+    .badge {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 26px;
+    }
+    h1 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(38px, 7vw, 76px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 0;
+      max-width: 15ch;
+    }
+    .lede {
+      font-size: clamp(18px, 2.2vw, 21px);
+      color: var(--muted);
+      max-width: 60ch;
+      margin: 26px 0 0;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 34px;
+    }
+    .btn {
+      font-family: var(--mono);
+      font-size: 14px;
+      text-decoration: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+    }
+    .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+    @media (prefers-color-scheme: dark) { .btn.primary { color: #06120F; } }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ---------- Coverage track (signature) ---------- */
+    .track { margin-top: clamp(44px, 7vw, 80px); }
+    .track-svg {
+      display: block;
+      width: 100%;
+      height: 104px;
+    }
+    .track-svg .area { fill: var(--accent-soft); }
+    .track-svg .line { fill: none; stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .track-reveal { animation: reveal 1.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+    .axis {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .axis span { position: relative; }
+    .axis span::before {
+      content: "";
+      position: absolute;
+      top: -9px; left: 0;
+      width: 1px; height: 6px;
+      background: var(--line);
+    }
+
+    /* ---------- Section rhythm ---------- */
+    section { padding-block: clamp(56px, 9vw, 104px); }
+    section + section { border-top: 1px solid var(--line); }
+    .section-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(24px, 3.4vw, 34px);
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    /* ---------- Idea ---------- */
+    .idea-grid { display: grid; grid-template-columns: 1fr; gap: 22px; max-width: 74ch; margin-top: 24px; }
+    .idea-grid p { margin: 0; }
+    .idea-grid p + p { color: var(--muted); }
+    .idea-grid strong { color: var(--ink); font-weight: 600; }
+
+    /* ---------- Projects (as tracks) ---------- */
+    .project-list { margin-top: 28px; }
+    .project {
+      display: grid;
+      grid-template-columns: minmax(0, 220px) 1fr auto;
+      gap: 20px;
+      align-items: baseline;
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+      text-decoration: none;
+      transition: padding-left 0.14s ease;
+    }
+    .project:last-child { border-bottom: 1px solid var(--line); }
+    .project:hover { padding-left: 10px; }
+    .pname { font-family: var(--display); font-weight: 500; font-size: 21px; }
+    .kind {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      display: block;
+      margin-top: 4px;
+    }
+    .pdesc { color: var(--muted); font-size: 15.5px; }
+    .go { font-family: var(--mono); font-size: 14px; color: var(--muted); white-space: nowrap; }
+    .project:hover .go { color: var(--accent); }
+
+    /* ---------- Team ---------- */
+    .team {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 30px;
+    }
+    .member {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .member img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--line);
+      display: block;
+    }
+    .mname { font-family: var(--display); font-weight: 500; font-size: 19px; margin: 14px 0 2px; }
+    .affil { font-family: var(--mono); font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .links { margin-top: 12px; display: flex; gap: 14px; }
+    .links a {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--line); padding-block: 40px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+    footer a { font-family: var(--mono); font-size: 13.5px; color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 20px; }
+    .tag { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 860px) {
+      .team { grid-template-columns: repeat(2, 1fr); }
+      .project { grid-template-columns: 1fr auto; }
+      .pdesc { grid-column: 1 / -1; }
+    }
+    @media (max-width: 520px) {
+      body { font-size: 16px; }
+      .team { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .member { padding: 12px; }
+      .hide-sm { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .track-reveal { animation: none; }
+      .btn:hover, .project:hover { transform: none; padding-left: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="wordmark" href="/">compo<b>seq</b></a>
+      <nav>
+        <a href="https://github.com/composeq" rel="noopener"><span class="hide-sm">GitHub </span>↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <div class="hero wrap">
+      <div class="hero-brand">
+        <span class="hero-pron">/kəmˈpoʊsiːk/ · &ldquo;kuhm-POH-seek&rdquo;</span>
+      </div>
+      <h1>Composable foundations for genomic&nbsp;data.</h1>
+      <p class="lede">
+        Building a shared, Arrow-native substrate that lets genomic data flow natively through the
+        modern data stack. Declarative, streaming, and portable, from cloud storage to GPU.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="https://github.com/composeq" rel="noopener">View on GitHub →</a>
+        <a class="btn ghost" href="mailto:hello@composeq.dev">hello@composeq.dev</a>
+      </div>
+    </div>
+
+    <!-- Coverage track (signature) -->
+    <div class="track wrap" aria-hidden="true">
+      <svg class="track-svg track-reveal" viewBox="0 0 1200 104" preserveAspectRatio="none" role="presentation">
+        <path class="area" id="cov-area" d=""></path>
+        <path class="line" id="cov-line" d=""></path>
+      </svg>
+      <div class="axis">
+        <span>chr1 · 0</span>
+        <span>50 Mb</span>
+        <span>100 Mb</span>
+        <span>150 Mb</span>
+        <span>200 Mb</span>
+        <span>248 Mb</span>
+      </div>
+    </div>
+
+    <!-- The idea -->
+    <section id="idea">
+      <div class="wrap">
+        <p class="eyebrow">the idea</p>
+        <h2 class="section-title">Declare. Stop parsing.</h2>
+        <div class="idea-grid">
+          <p>
+            Genomic data is, at heart, <strong>data on a coordinate system</strong> — interval-based features 
+            located along a reference, with a few domain quirks like strandedness. Yet the tooling around it
+            is fragmented and welded to file formats, so most effort goes into parsing, copying, and
+            shuttling data between programs.
+          </p>
+          <p>
+            CompoSeq flips the model: bring genomic data into general-purpose engines that already solve
+            joins, streaming, and cloud storage — then layer on the few genuinely genomic primitives: interval
+            operators, coverage and pileup rasterization, and coordinate-aware tensor loading. Generic work is
+            optimized once, in shared infrastructure; specialized kernels stay modular and reusable over Apache Arrow.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects">
+      <div class="wrap">
+        <p class="eyebrow">projects</p>
+        <h2 class="section-title">Maintained libraries working together.</h2>
+        <div class="project-list">
+          <a class="project" href="https://github.com/abdenlab/oxbow" rel="noopener">
+            <div><span class="pname">oxbow</span><span class="kind">format bridge</span></div>
+            <div class="pdesc">Translates conventional genomic file formats into Apache Arrow record batches for any Arrow-native engine.</div>
+            <div class="go">abdenlab/oxbow ↗</div>
+          </a>
+          <a class="project" href="https://github.com/biodatageeks/polars-bio" rel="noopener">
+            <div><span class="pname">polars-bio</span><span class="kind">dataframe engine</span></div>
+            <div class="pdesc">Genomic interval operations, a SQL frontend, parallel I/O, and cloud-native streaming, powered by Apache DataFusion.</div>
+            <div class="go">biodatageeks/polars-bio ↗</div>
+          </a>
+          <a class="project" href="https://github.com/jmschrei/tangermeme" rel="noopener">
+            <div><span class="pname">tangermeme</span><span class="kind">ml toolkit</span></div>
+            <div class="pdesc">Sequence manipulation, feature attribution, variant effect scoring, and DNA design for genomic ML models.</div>
+            <div class="go">jmschrei/tangermeme ↗</div>
+          </a>
+          <a class="project" href="https://github.com/jmschrei/bpnet-lite" rel="noopener">
+            <div><span class="pname">bpnet-lite</span><span class="kind">models</span></div>
+            <div class="pdesc">Compact, state-of-the-art sequence-to-function models for chromatin accessibility, TF binding, and transcription initiation.</div>
+            <div class="go">jmschrei/bpnet-lite ↗</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team -->
+    <section id="team">
+      <div class="wrap">
+        <p class="eyebrow">team</p>
+        <h2 class="section-title">The team behind the initiative.</h2>
+        <div class="team">
+
+          <div class="member">
+            <img src="assets/team-na.png" alt="Nezar Abdennur" loading="lazy" />
+            <div class="mname">Nezar Abdennur</div>
+            <div class="affil">UMass Chan Medical School</div>
+            <div class="links">
+              <a href="https://abdenlab.org" rel="noopener">site ↗</a>
+              <a href="https://github.com/nvictus" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+          <div class="member">
+            <img src="assets/team-js.jpg" alt="Jacob Schreiber" loading="lazy" />
+            <div class="mname">Jacob Schreiber</div>
+            <div class="affil">UMass Chan Medical School</div>
+            <div class="links">
+              <a href="https://jmschrei.github.io" rel="noopener">site ↗</a>
+              <a href="https://github.com/jmschrei" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+          <div class="member">
+            <img src="assets/team-mw.jpg" alt="Marek Wiewiórka" loading="lazy" />
+            <div class="mname">Marek Wiewiórka</div>
+            <div class="affil">Warsaw University of Technology</div>
+            <div class="links">
+              <a href="https://marekwiewiorka.org" rel="noopener">site ↗</a>
+              <a href="https://github.com/mwiewior" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+          <div class="member">
+            <img src="assets/team-tg.jpg" alt="Tomasz Gambin" loading="lazy" />
+            <div class="mname">Tomasz Gambin</div>
+            <div class="affil">Warsaw University of Technology</div>
+            <div class="links">
+              <a href="https://biodatageeks.org" rel="noopener">site ↗</a>
+              <a href="https://github.com/biodatageeks" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+          <div class="member">
+            <img src="assets/team-cb.jpeg" alt="Conrad Bzura" loading="lazy" />
+            <div class="mname">Conrad Bzura</div>
+            <div class="affil">UMass Chan Medical School · Abdennur Lab</div>
+            <div class="links">
+              <a href="https://github.com/conradbzura" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+          <div class="member">
+            <img src="assets/team-voy.png" alt="Vedat Yilmaz" loading="lazy" />
+            <div class="mname">Vedat Yilmaz</div>
+            <div class="affil">UMass Chan Medical School · Abdennur Lab</div>
+            <div class="links">
+              <a href="https://github.com/vedatonuryilmaz" rel="noopener">github ↗</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span class="tag">CompoSeq · Composable foundations for genomic data</span>
+      <div class="foot-links">
+        <a href="mailto:hello@composeq.dev">hello@composeq.dev</a>
+        <a href="https://github.com/composeq/.github/blob/main/CODE_OF_CONDUCT.md" rel="noopener">Code of Conduct</a>
+        <a href="https://github.com/composeq" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Build the coverage/pileup profile — deterministic (no runtime randomness).
+    (function () {
+      var h = [
+        0.12,0.18,0.15,0.22,0.19,0.28,0.24,0.33,0.41,0.30,
+        0.26,0.35,0.52,0.68,0.83,0.72,0.55,0.40,0.31,0.27,
+        0.22,0.19,0.24,0.30,0.26,0.20,0.17,0.23,0.29,0.38,
+        0.47,0.61,0.78,0.95,0.88,0.66,0.48,0.35,0.28,0.24,
+        0.21,0.26,0.33,0.29,0.23,0.19,0.16,0.20,0.27,0.36,
+        0.44,0.34,0.28,0.22,0.18,0.25,0.31,0.24,0.19,0.15,
+        0.21,0.28,0.20,0.14
+      ];
+      var W = 1200, H = 104, base = H, top = 8, n = h.length, dx = W / (n - 1);
+      var line = "", area = "M 0 " + base;
+      for (var i = 0; i < n; i++) {
+        var x = (i * dx).toFixed(1);
+        var y = (base - h[i] * (base - top)).toFixed(1);
+        line += (i === 0 ? "M " : "L ") + x + " " + y + " ";
+        area += " L " + x + " " + y;
+      }
+      area += " L " + W + " " + base + " Z";
+      document.getElementById("cov-area").setAttribute("d", area);
+      document.getElementById("cov-line").setAttribute("d", line.trim());
+    })();
+  </script>
+</body>
+</html>
