@@ -18,14 +18,18 @@
 
   <style>
     :root {
-      --paper: #FCFBF8;
-      --ink: #15191F;
-      --muted: #5C6672;
-      --line: #E6E3DB;
+      --paper: #F7F8FA;
+      --ink: #15181E;
+      --muted: #59616E;
+      --line: #E4E7EC;
       --card: #FFFFFF;
-      --accent: #0E9E8E;
-      --accent-soft: rgba(14, 158, 142, 0.12);
-      --track: #E8A33D;
+      --accent: #2F74D0;
+      --accent-soft: rgba(47, 116, 208, 0.12);
+      --track: #E0A93B;
+      --base-a: #3FA96A;
+      --base-c: #2F74D0;
+      --base-g: #E0A93B;
+      --base-t: #D6564A;
       --shadow: 0 1px 2px rgba(21, 25, 31, 0.04), 0 8px 24px rgba(21, 25, 31, 0.06);
 
       --display: "Space Grotesk", system-ui, sans-serif;
@@ -38,14 +42,18 @@
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --paper: #0E1218;
-        --ink: #EAECEF;
-        --muted: #9AA4B0;
+        --paper: #0F1319;
+        --ink: #E9ECF1;
+        --muted: #98A2B0;
         --line: rgba(255, 255, 255, 0.10);
-        --card: #161C24;
-        --accent: #2BC2B0;
-        --accent-soft: rgba(43, 194, 176, 0.14);
-        --track: #F0B357;
+        --card: #171D26;
+        --accent: #5B9BF0;
+        --accent-soft: rgba(91, 155, 240, 0.14);
+        --track: #F0BE5A;
+        --base-a: #4EC57C;
+        --base-c: #5B9BF0;
+        --base-g: #F0BE5A;
+        --base-t: #EC6D5C;
         --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
       }
     }
@@ -205,10 +213,15 @@
     .track-svg {
       display: block;
       width: 100%;
-      height: 104px;
+      height: auto;
     }
-    .track-svg .area { fill: var(--accent-soft); }
-    .track-svg .line { fill: none; stroke: var(--accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .b-a { fill: var(--base-a); }
+    .b-c { fill: var(--base-c); }
+    .b-g { fill: var(--base-g); }
+    .b-t { fill: var(--base-t); }
+    .brick-top { fill: #fff; opacity: 0.18; }
+    .brick-bot { fill: #000; opacity: 0.13; }
+    .stud { fill: #fff; opacity: 0.5; }
     .track-reveal { animation: reveal 1.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
     @keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 
@@ -363,9 +376,8 @@
 
     <!-- Coverage track (signature) -->
     <div class="track wrap" aria-hidden="true">
-      <svg class="track-svg track-reveal" viewBox="0 0 1200 104" preserveAspectRatio="none" role="presentation">
-        <path class="area" id="cov-area" d=""></path>
-        <path class="line" id="cov-line" d=""></path>
+      <svg class="track-svg track-reveal" viewBox="0 0 1200 132" role="presentation">
+        <g id="bricks"></g>
       </svg>
       <div class="axis">
         <span>chr1 · 0</span>
@@ -504,6 +516,7 @@
       <span class="tag">CompoSeq · Composable foundations for genomic data</span>
       <div class="foot-links">
         <a href="mailto:hello@composeq.dev">hello@composeq.dev</a>
+        <a href="https://github.com/composeq/.github/blob/main/ROADMAP.md" rel="noopener">Roadmap</a>
         <a href="https://github.com/composeq/.github/blob/main/CODE_OF_CONDUCT.md" rel="noopener">Code of Conduct</a>
         <a href="https://github.com/composeq" rel="noopener">GitHub</a>
       </div>
@@ -511,28 +524,35 @@
   </footer>
 
   <script>
-    // Build the coverage/pileup profile — deterministic (no runtime randomness).
+    // Build the pileup as a wall of LEGO-style bricks — deterministic (no randomness).
     (function () {
       var h = [
-        0.12,0.18,0.15,0.22,0.19,0.28,0.24,0.33,0.41,0.30,
-        0.26,0.35,0.52,0.68,0.83,0.72,0.55,0.40,0.31,0.27,
-        0.22,0.19,0.24,0.30,0.26,0.20,0.17,0.23,0.29,0.38,
-        0.47,0.61,0.78,0.95,0.88,0.66,0.48,0.35,0.28,0.24,
-        0.21,0.26,0.33,0.29,0.23,0.19,0.16,0.20,0.27,0.36,
-        0.44,0.34,0.28,0.22,0.18,0.25,0.31,0.24,0.19,0.15,
-        0.21,0.28,0.20,0.14
+        0.25, 0.40, 0.30, 0.50, 0.35, 0.60, 0.45, 0.80, 0.55, 0.40,
+        0.30, 0.50, 0.70, 1.00, 0.65, 0.45, 0.30, 0.55, 0.40, 0.75,
+        0.95, 0.60, 0.40, 0.30, 0.50, 0.30
       ];
-      var W = 1200, H = 104, base = H, top = 8, n = h.length, dx = W / (n - 1);
-      var line = "", area = "M 0 " + base;
+      var W = 1200, base = 128, brickH = 16, gapY = 3, unit = brickH + gapY;
+      var maxStack = 6, n = h.length, colW = W / n, brickW = 34;
+      var bases = "CAGTCGTAACGTGCATTGCAGTCCAG"; // color each column by its base
+      var g = document.getElementById("bricks");
+      var out = "";
       for (var i = 0; i < n; i++) {
-        var x = (i * dx).toFixed(1);
-        var y = (base - h[i] * (base - top)).toFixed(1);
-        line += (i === 0 ? "M " : "L ") + x + " " + y + " ";
-        area += " L " + x + " " + y;
+        var b = Math.max(1, Math.round(h[i] * maxStack));
+        var xL = i * colW + (colW - brickW) / 2;
+        var cls = "b-" + bases.charAt(i % bases.length).toLowerCase();
+        for (var k = 0; k < b; k++) {
+          var top = base - k * unit - brickH;
+          out += '<rect class="' + cls + '" x="' + xL.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + brickW + '" height="' + brickH + '" rx="3"/>';
+          out += '<rect class="brick-top" x="' + xL.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + brickW + '" height="3" rx="1.5"/>';
+          out += '<rect class="brick-bot" x="' + xL.toFixed(1) + '" y="' + (top + brickH - 3).toFixed(1) + '" width="' + brickW + '" height="3" rx="1.5"/>';
+          if (k === b - 1) {
+            var sy = (top - 1).toFixed(1);
+            out += '<ellipse class="stud" cx="' + (xL + brickW * 0.30).toFixed(1) + '" cy="' + sy + '" rx="6" ry="3.5"/>';
+            out += '<ellipse class="stud" cx="' + (xL + brickW * 0.70).toFixed(1) + '" cy="' + sy + '" rx="6" ry="3.5"/>';
+          }
+        }
       }
-      area += " L " + W + " " + base + " Z";
-      document.getElementById("cov-area").setAttribute("d", area);
-      document.getElementById("cov-line").setAttribute("d", line.trim());
+      g.innerHTML = out;
     })();
   </script>
 </body>
